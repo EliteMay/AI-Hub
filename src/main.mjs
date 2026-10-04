@@ -1,5 +1,5 @@
 import { app, BrowserWindow, ipcMain, shell } from "electron";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -7,6 +7,41 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const appRoot = path.resolve(__dirname, "..");
 const registryPath = path.join(appRoot, "config", "modules.json");
 const ssdManifestPath = "D:\\AI_SSD_MANIFEST.json";
+
+function readSsdManifest() {
+  if (!existsSync(ssdManifestPath)) return null;
+
+  try {
+    return JSON.parse(readFileSync(ssdManifestPath, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function configureStorage() {
+  const manifest = readSsdManifest();
+  const appsRoot = manifest?.zones?.apps;
+
+  if (!appsRoot) return null;
+
+  try {
+    const dataRoot = path.join(appsRoot, "ai-hub");
+    const userData = path.join(dataRoot, "user-data");
+    const sessionData = path.join(dataRoot, "session-data");
+
+    mkdirSync(userData, { recursive: true });
+    mkdirSync(sessionData, { recursive: true });
+
+    app.setPath("userData", userData);
+    app.setPath("sessionData", sessionData);
+
+    return dataRoot;
+  } catch {
+    return null;
+  }
+}
+
+const configuredDataRoot = configureStorage();
 
 function readRegistry() {
   const parsed = JSON.parse(readFileSync(registryPath, "utf8"));
@@ -28,26 +63,23 @@ function publicModule(module) {
 }
 
 function readSsdStatus() {
-  if (!existsSync(ssdManifestPath)) {
-    return { available: false, manifestPath: ssdManifestPath, managedRoot: null };
-  }
-
-  try {
-    const manifest = JSON.parse(readFileSync(ssdManifestPath, "utf8"));
-    return {
-      available: true,
-      manifestPath: ssdManifestPath,
-      managedRoot: manifest.managedRoot ?? "D:\\AI",
-      constitutionVersion: manifest.constitutionVersion ?? null
-    };
-  } catch (error) {
+  const manifest = readSsdManifest();
+  if (!manifest) {
     return {
       available: false,
       manifestPath: ssdManifestPath,
       managedRoot: null,
-      error: "SSD Manifestを読み込めませんでした。"
+      dataRoot: null
     };
   }
+
+  return {
+    available: true,
+    manifestPath: ssdManifestPath,
+    managedRoot: manifest.managedRoot ?? "D:\\AI",
+    constitutionVersion: manifest.constitutionVersion ?? null,
+    dataRoot: configuredDataRoot
+  };
 }
 
 async function launchModule(moduleId) {
@@ -78,7 +110,7 @@ function createWindow() {
     backgroundColor: "#0b0f14",
     title: "AI Hub",
     webPreferences: {
-      preload: path.join(__dirname, "preload.mjs"),
+      preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true
@@ -86,14 +118,15 @@ function createWindow() {
   });
 
   win.loadFile(path.join(__dirname, "renderer", "index.html"));
+  return win;
 }
+
+let mainWindow = null;
 
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
   app.quit();
 } else {
-  let mainWindow = null;
-
   app.on("second-instance", () => {
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
