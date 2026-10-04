@@ -4,16 +4,22 @@
 
 ## 現在の段階
 
-Phase 1のLauncher基盤に加えて、Phase 2の最初のPilotとして **Local AI LabをHub内Rendererへ統合**しています。
+Local AI Labを最初の本統合Pilotとして、**既存のLocal AI Lab Renderer / Runtime / IPCをAI Hub内でそのまま動かす方式**へ移行しています。
 
-- Local AI Lab — `hub-renderer`
+- Local AI Lab — `hub-renderer`（Repository-owned Runtime Adapter）
 - Game Dev Hub — `external-exe`
 - VReview — `external-exe`
 - Video Plugin Dev Hub — `external-exe`
 
-各アプリのRepository・Release・Project固有仕様は引き続き各RepositoryがSource of Truthです。
+Repositoryは統合しません。
 
-Local AI LabのHub向け画面自体も `EliteMay/local-ai-lab/hub/` が所有します。AI Hubは共通Shell / Module Contract / 安全なBridgeを担当します。
+```text
+EliteMay/AI-Hub
+= Window / Sidebar / Registry / Module lifecycle / SSD routing
+
+EliteMay/local-ai-lab
+= Local AI Lab Renderer / Runtime / IPC / Hub Adapter
+```
 
 ## 開発
 
@@ -22,16 +28,38 @@ npm install
 npm start
 ```
 
-Local AI Lab PilotをHub内で表示するには、標準SSD Pathへ対象Repositoryが必要です。
+Local AI Lab Moduleは標準SSD Pathを利用します。
 
 ```text
+Repository
 D:\AI\projects\repos\EliteMay--local-ai-lab
+
+Module Data
+D:\AI\apps\local-ai-lab
 ```
+
+## Module読み込み
+
+```text
+AI Hub Registry
+↓
+local-ai-lab/hub/module.json
+↓
+hub/preload.cjs
+↓
+hub/adapter.mjs
+↓
+desktop/runtime-host.mjs
+↓
+desktop/renderer/index.html
+```
+
+Standalone版Local AI Labも `desktop/runtime-host.mjs` を共有するので、Hub用に機能をコピーして二重実装しません。
 
 ## 方針
 
-- AI Hubは共通Electron Shell / Navigation / Settings / Storage integrationを担当する。
-- Project固有機能は各Repositoryへ残す。
-- Module間の共通ContractだけをAI Hubが所有する。
-- Moduleは一括Rewriteせず `external-exe → hub-renderer → capability migration` の順で段階移行する。
-- AI SSDを利用できる場合は `D:\AI_SSD_CONSTITUTION.md` を確認し、SSD側Rule Routingに従う。
+- 各ProjectのSource of Truthは各Repositoryに残す。
+- AI HubはProject固有機能を複製しない。
+- 共通化するのは実際に複数Moduleで安定して共通化できる責務だけ。
+- 個別exeはModule移行が完了するまでFallbackとして残す。
+- AI SSDを利用できる場合は `D:\AI_SSD_CONSTITUTION.md` と必要なScoped RuleへRoutingする。
