@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "1.0",
+  "modules": [
+    {
+      "id": "local-ai-lab",
+      "name": "Local AI Lab",
+      "description": "ローカルAI・モデル・Agent運用",
+      "repository": "EliteMay/local-ai-lab",
+      "mode": "external-exe",
+      "executablePath": "D:\\electron\\Local AI Lab\\Local AI Lab.exe"
+    },
+    {
+      "id": "game-dev-hub",
+      "name": "Game Dev Hub",
+      "description": "ゲーム開発・テスト・Project管理",
+      "repository": "EliteMay/game-dev-hub",
+      "mode": "external-exe",
+      "executablePath": "D:\\electron\\Game Dev Hub\\Game Dev Hub.exe"
+    },
+    {
+      "id": "vreview",
+      "name": "VReview",
+      "description": "VALORANT Review",
+      "repository": "EliteMay/valorant-review",
+      "mode": "external-exe",
+      "executablePath": "D:\\electron\\VReview\\VReview.exe"
+    },
+    {
+      "id": "video-plugin-dev-hub",
+      "name": "Video Plugin Dev Hub",
+      "description": "動画Plugin開発",
+      "repository": "EliteMay/video-plugin-dev-hub",
+      "mode": "external-exe",
+      "executablePath": "D:\\electron\\Video Plugin Dev Hub\\Video Plugin Dev Hub.exe"
+    }
+  ]
+}
