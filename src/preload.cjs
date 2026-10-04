@@ -5,5 +5,8 @@ contextBridge.exposeInMainWorld("aiHub", {
   launchModule: (moduleId) => ipcRenderer.invoke("hub:launch-module", moduleId),
   openModuleView: (moduleId) => ipcRenderer.invoke("hub:open-module-view", moduleId),
   showHome: () => ipcRenderer.invoke("hub:show-home"),
-  getSsdStatus: () => ipcRenderer.invoke("hub:ssd-status")
+  getSsdStatus: () => ipcRenderer.invoke("hub:ssd-status"),
+  getSharedSettings: () => ipcRenderer.invoke("hub:settings:get"),
+  saveSharedSettings: (input) => ipcRenderer.invoke("hub:settings:save", input),
+  selectSharedRepositoryRoot: () => ipcRenderer.invoke("hub:settings:select-repository-root")
 });
