@@ -68,5 +68,7 @@ assert.match(mainSource, /hub:settings:get/);
 assert.match(mainSource, /hub:settings:save/);
 assert.match(mainSource, /ai-hub-shared-settings\.json/);
 assert.match(mainSource, /applySharedSettings/);
+assert.match(mainSource, /pendingRepositoryRoot/);
+assert.match(mainSource, /「変更」ボタンから選択/);
 
 console.log("AI Hub validation passed.");
