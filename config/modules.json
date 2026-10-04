@@ -1,12 +1,14 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "modules": [
     {
       "id": "local-ai-lab",
       "name": "Local AI Lab",
       "description": "ローカルAI・モデル・Agent運用",
       "repository": "EliteMay/local-ai-lab",
-      "mode": "external-exe",
+      "mode": "hub-renderer",
+      "repoPath": "D:\\AI\\projects\\repos\\EliteMay--local-ai-lab",
+      "manifestPath": "hub\\module.json",
       "executablePath": "D:\\electron\\Local AI Lab\\Local AI Lab.exe"
     },
     {
