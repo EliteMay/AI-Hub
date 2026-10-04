@@ -2,6 +2,7 @@ import { app, BrowserWindow, WebContentsView, dialog, ipcMain, shell } from "ele
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { createSharedSettingsStore } from "./shared-settings.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const appRoot = path.resolve(__dirname, "..");
@@ -43,6 +44,71 @@ function configureStorage() {
 }
 
 const configuredDataRoot = configureStorage();
+
+function createSharedSettingsInfrastructure() {
+  const manifest = readSsdManifest();
+  const configRoot = manifest?.zones?.config ?? path.join(app.getPath("userData"), "config");
+  const backupRoot = manifest?.zones?.backups ?? path.join(app.getPath("userData"), "backups");
+  const defaultRepositoryRoot = manifest?.zones?.projects
+    ? path.join(manifest.zones.projects, "repos")
+    : path.join(app.getPath("userData"), "repositories");
+
+  return createSharedSettingsStore({
+    configPath: path.join(configRoot, "ai-hub-shared-settings.json"),
+    backupPath: path.join(backupRoot, "ai-hub-shared-settings.backup.json"),
+    defaultRepositoryRoot
+  });
+}
+
+const sharedSettingsStore = createSharedSettingsInfrastructure();
+let sharedSettingsSnapshot = null;
+
+async function getSharedSettings() {
+  if (!sharedSettingsSnapshot) {
+    sharedSettingsSnapshot = await sharedSettingsStore.read();
+  }
+  return { ...sharedSettingsSnapshot };
+}
+
+function publicSharedSettings(settings) {
+  const manifest = readSsdManifest();
+  return {
+    ...settings,
+    configPath: sharedSettingsStore.paths.configPath,
+    managedRoot: manifest?.managedRoot ?? null
+  };
+}
+
+function normalizeStartupModuleId(value) {
+  const id = String(value || "").trim();
+  if (!id) return "";
+  const module = getModule(id);
+  return module?.mode === "hub-renderer" ? id : "";
+}
+
+async function saveSharedSettings(input) {
+  const next = await sharedSettingsStore.save({
+    ...input,
+    startupModuleId: normalizeStartupModuleId(input?.startupModuleId)
+  });
+  sharedSettingsSnapshot = next;
+
+  for (const controller of moduleRuntimeControllers.values()) {
+    await controller?.applySharedSettings?.(next);
+  }
+
+  return publicSharedSettings(next);
+}
+
+async function selectSharedRepositoryRoot() {
+  const current = await getSharedSettings();
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: "AI Repositoryの共通保存先を選択",
+    defaultPath: current.repositoryRoot,
+    properties: ["openDirectory"]
+  });
+  return result.canceled ? null : result.filePaths[0];
+}
 
 function readRegistry() {
   const parsed = JSON.parse(readFileSync(registryPath, "utf8"));
@@ -209,7 +275,8 @@ async function createModuleView(module) {
     const controller = await adapter.activate({
       hostWindow: mainWindow,
       webContents: view.webContents,
-      dataRoot: moduleDataRoot(resolved.manifest)
+      dataRoot: moduleDataRoot(resolved.manifest),
+      sharedSettings: await getSharedSettings()
     });
 
     moduleRuntimeControllers.set(module.id, controller ?? null);
@@ -316,16 +383,22 @@ if (!gotLock) {
     }
   });
 
-  app.whenReady().then(() => {
+  app.whenReady().then(async () => {
     ipcMain.handle("hub:list-modules", () => readRegistry().map(publicModule));
     ipcMain.handle("hub:launch-module", (_event, moduleId) => launchModule(moduleId));
     ipcMain.handle("hub:open-module-view", (_event, moduleId) => openModuleView(moduleId));
     ipcMain.handle("hub:show-home", () => showHome());
     ipcMain.handle("hub:ssd-status", () => readSsdStatus());
+    ipcMain.handle("hub:settings:get", async () => publicSharedSettings(await getSharedSettings()));
+    ipcMain.handle("hub:settings:save", (_event, input) => saveSharedSettings(input));
+    ipcMain.handle("hub:settings:select-repository-root", () => selectSharedRepositoryRoot());
 
+    const sharedSettings = await getSharedSettings();
     mainWindow = createWindow();
 
-    const startupModule = String(process.env.AI_HUB_START_MODULE || "").trim();
+    const startupModule = String(
+      process.env.AI_HUB_START_MODULE || sharedSettings.startupModuleId || ""
+    ).trim();
     if (startupModule) {
       void openModuleView(startupModule).then((result) => {
         console.log("[AI Hub] startup module:", startupModule, result.ok ? "OK" : result.error);
