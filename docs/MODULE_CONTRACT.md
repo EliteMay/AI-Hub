@@ -1,6 +1,6 @@
 # AI Hub Module Contract
 
-Version: 0.3
+Version: 0.4
 
 ## 目的
 
@@ -44,7 +44,8 @@ AI Hubはそれらを登録済みRepository Pathから解決し、`WebContentsVi
     "repository-read",
     "history",
     "diagnostics",
-    "shared-settings"
+    "shared-settings",
+    "module-settings"
   ]
 }
 ```
@@ -64,6 +65,7 @@ export async function activate({
     commandStatus,
     cancelActiveCommand,
     applySharedSettings,
+    openSettings,
     dispose
   };
 }
@@ -73,6 +75,8 @@ export async function activate({
 - `applySharedSettings(next)` は共通設定変更を実行中Moduleへ即時反映したい場合のOptional Controller API。
 - Module側は共通設定を独自のCanonical Settingsとして複製しない。
 - Product固有設定は各RepositoryがOwnする。
+- `module-settings` Capabilityを宣言するModuleは、Controllerの `openSettings()` を通じてAI Hubの「アプリ別設定」から固有設定へ遷移できる。
+- Hub表示中はModule内部の重複する設定Navigationを隠せるが、Standalone UIの設定入口は維持する。
 
 ## Shared Settings Contract
 

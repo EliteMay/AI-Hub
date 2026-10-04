@@ -15,6 +15,7 @@ const repositoryRootButton = document.querySelector("#repository-root-button");
 const settingsConfigPath = document.querySelector("#settings-config-path");
 const saveSharedSettingsButton = document.querySelector("#save-shared-settings");
 const sharedSettingsMessage = document.querySelector("#shared-settings-message");
+const moduleSettingsList = document.querySelector("#module-settings-list");
 
 let modules = [];
 let sharedSettings = null;
@@ -129,6 +130,52 @@ function renderSharedSettings(settings) {
   settingsConfigPath.textContent = settings.configPath || "Fallback保存";
 }
 
+function renderModuleSettings() {
+  moduleSettingsList.textContent = "";
+  const configurableModules = modules.filter((item) => item.settingsAvailable);
+
+  if (!configurableModules.length) {
+    const empty = document.createElement("p");
+    empty.className = "module-settings-empty";
+    empty.textContent = "Hubから開けるアプリ固有設定はまだありません。";
+    moduleSettingsList.append(empty);
+    return;
+  }
+
+  for (const module of configurableModules) {
+    const row = document.createElement("article");
+    row.className = "module-setting-row";
+
+    const copy = document.createElement("div");
+    const title = document.createElement("strong");
+    title.textContent = module.name;
+    const description = document.createElement("p");
+    description.textContent = module.name + "だけで使うモデル・実行・診断などの設定です。";
+    copy.append(title, description);
+
+    const action = document.createElement("button");
+    action.className = "secondary-button";
+    action.type = "button";
+    action.textContent = "固有設定を開く";
+    action.addEventListener("click", async () => {
+      action.disabled = true;
+      try {
+        const result = await window.aiHub.openModuleSettings(module.id);
+        if (!result.ok) {
+          sharedSettingsMessage.textContent = result.error ?? "アプリ設定を開けませんでした。";
+          return;
+        }
+        setActiveNav(module.id);
+      } finally {
+        action.disabled = false;
+      }
+    });
+
+    row.append(copy, action);
+    moduleSettingsList.append(row);
+  }
+}
+
 homeNav.addEventListener("click", () => showHostView("home"));
 settingsNav.addEventListener("click", () => showHostView("settings"));
 
@@ -178,6 +225,7 @@ async function init() {
   populateStartupModules();
   renderSsdStatus(ssd);
   renderSharedSettings(settings);
+  renderModuleSettings();
 
   const localAi = modules.find((item) => item.id === "local-ai-lab");
   const localAiNav = moduleNavItems.find((item) => item.dataset.moduleId === "local-ai-lab");

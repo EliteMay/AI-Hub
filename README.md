@@ -88,3 +88,5 @@ D:\AI\backups\ai-hub-shared-settings.backup.json
 ```
 
 モデル選択、監査条件、Bonsai等のProduct固有設定は各Module側に残します。
+
+ただし設定の**入口**はAI Hubに統一します。AI Hubの「設定」には「共通設定」と「アプリ別設定」があり、`module-settings` Capabilityを持つModuleの固有設定をHub内で開けます。

@@ -53,6 +53,10 @@ assert.equal(localAi.mode, "hub-renderer");
 assert.equal(localAi.manifestPath, "hub\\module.json");
 
 const mainSource = readFileSync(path.join(root, "src", "main.mjs"), "utf8");
+const preloadSource = readFileSync(path.join(root, "src", "preload.cjs"), "utf8");
+const rendererSource = readFileSync(path.join(root, "src", "renderer", "app.js"), "utf8");
+const rendererHtml = readFileSync(path.join(root, "src", "renderer", "index.html"), "utf8");
+
 assert.match(mainSource, /WebContentsView/);
 assert.match(mainSource, /contextIsolation:\s*true/);
 assert.match(mainSource, /nodeIntegration:\s*false/);
@@ -70,5 +74,13 @@ assert.match(mainSource, /ai-hub-shared-settings\.json/);
 assert.match(mainSource, /applySharedSettings/);
 assert.match(mainSource, /pendingRepositoryRoot/);
 assert.match(mainSource, /「変更」ボタンから選択/);
+assert.match(mainSource, /hub:open-module-settings/);
+assert.match(mainSource, /settingsAvailable/);
+assert.match(mainSource, /module-settings/);
+assert.match(preloadSource, /openModuleSettings/);
+assert.match(rendererSource, /renderModuleSettings/);
+assert.match(rendererSource, /openModuleSettings/);
+assert.match(rendererHtml, /id="module-settings-list"/);
+assert.match(rendererHtml, /アプリ別設定/);
 
 console.log("AI Hub validation passed.");

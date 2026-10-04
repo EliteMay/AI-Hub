@@ -208,7 +208,12 @@ function publicModule(module) {
     repository: module.repository,
     mode: module.mode,
     installed: Boolean(module.executablePath && existsSync(module.executablePath)),
-    embeddedAvailable: embedded.ok
+    embeddedAvailable: embedded.ok,
+    settingsAvailable: Boolean(
+      embedded.ok &&
+      Array.isArray(embedded.manifest?.capabilities) &&
+      embedded.manifest.capabilities.includes("module-settings")
+    )
   };
 }
 
@@ -328,6 +333,31 @@ async function openModuleView(moduleId) {
   return { ok: true };
 }
 
+async function openModuleSettings(moduleId) {
+  const module = getModule(moduleId);
+  if (!module) return { ok: false, error: "未登録のModuleです。" };
+
+  const resolved = resolveEmbeddedModule(module);
+  if (!resolved.ok) return resolved;
+  if (!Array.isArray(resolved.manifest?.capabilities) || !resolved.manifest.capabilities.includes("module-settings")) {
+    return { ok: false, error: "このModuleはHubから開く設定画面を提供していません。" };
+  }
+
+  const result = await getOrCreateModuleView(module);
+  if (!result.ok) return result;
+
+  const controller = moduleRuntimeControllers.get(moduleId);
+  if (typeof controller?.openSettings !== "function") {
+    return { ok: false, error: "Module設定を開く機能が利用できません。" };
+  }
+
+  hideAllModuleViews();
+  result.view.setVisible(true);
+  syncModuleViewBounds();
+  await controller.openSettings();
+  return { ok: true };
+}
+
 function showHome() {
   hideAllModuleViews();
   return { ok: true };
@@ -406,6 +436,7 @@ if (!gotLock) {
     ipcMain.handle("hub:list-modules", () => readRegistry().map(publicModule));
     ipcMain.handle("hub:launch-module", (_event, moduleId) => launchModule(moduleId));
     ipcMain.handle("hub:open-module-view", (_event, moduleId) => openModuleView(moduleId));
+    ipcMain.handle("hub:open-module-settings", (_event, moduleId) => openModuleSettings(moduleId));
     ipcMain.handle("hub:show-home", () => showHome());
     ipcMain.handle("hub:ssd-status", () => readSsdStatus());
     ipcMain.handle("hub:settings:get", async () => publicSharedSettings(await getSharedSettings()));

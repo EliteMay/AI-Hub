@@ -22,7 +22,7 @@
       </div>
       <nav>
         <button id="home-nav" class="nav-item active" type="button">ホーム</button>
-        <button id="settings-nav" class="nav-item" type="button">共通設定</button>
+        <button id="settings-nav" class="nav-item" type="button">設定</button>
         <button class="nav-item module-nav" data-module-id="local-ai-lab" type="button">Local AI Lab <small>統合中</small></button>
         <button class="nav-item" type="button" disabled>プロジェクト <small>後で追加</small></button>
         <button class="nav-item" type="button" disabled>モデル <small>後で追加</small></button>
@@ -67,12 +67,19 @@
       <section id="settings-view" class="hidden" aria-labelledby="settings-title">
         <header class="topbar settings-topbar">
           <div>
-            <p class="eyebrow">SHARED SETTINGS</p>
-            <h1 id="settings-title">共通設定</h1>
-            <p>全Moduleで共通に扱う設定だけをAI Hubで管理します。</p>
+            <p class="eyebrow">SETTINGS</p>
+            <h1 id="settings-title">設定</h1>
+            <p>AI Hubと各Moduleの設定を1か所から管理します。</p>
           </div>
           <div id="settings-ssd-status" class="ssd-status">SSD確認中…</div>
         </header>
+
+        <div class="section-heading settings-section-heading">
+          <div>
+            <p class="eyebrow">COMMON</p>
+            <h2>共通設定</h2>
+          </div>
+        </div>
 
         <section class="settings-panel">
           <div class="setting-row">
@@ -121,9 +128,20 @@
           </div>
         </section>
 
+        <section class="module-settings-section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">APP SETTINGS</p>
+              <h2>アプリ別設定</h2>
+            </div>
+          </div>
+          <p class="module-settings-intro">共通設定と混ぜるべきではない、各Module固有の設定だけをここから開きます。</p>
+          <div id="module-settings-list" class="module-settings-list" aria-live="polite"></div>
+        </section>
+
         <section class="settings-scope-note">
-          <strong>各アプリ固有の設定は各Moduleに残します</strong>
-          <p>例: Local AI Labのモデル選択、監査対象、Bonsai設定、Coverage再利用など。共通設定と固有設定を二重保存しません。</p>
+          <strong>設定の入口はAI Hubに統一します</strong>
+          <p>通知・起動時画面・Repository共通保存先はAI Hubが正本です。モデル選択、監査対象、Bonsai設定、Coverage再利用などの固有設定は各Moduleが正本のまま、ここから開きます。</p>
         </section>
       </section>
     </main>

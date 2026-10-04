@@ -416,6 +416,46 @@ h2 {
   font-size: 12px;
 }
 
+.module-settings-section {
+  margin-top: 26px;
+}
+
+.module-settings-intro {
+  margin: 8px 0 14px;
+  color: #7f8ea1;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.module-settings-list {
+  display: grid;
+  gap: 10px;
+}
+
+.module-setting-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  padding: 16px 18px;
+  border: 1px solid #202c3a;
+  border-radius: 12px;
+  background: #0f151d;
+}
+
+.module-setting-row strong {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.module-setting-row p,
+.module-settings-empty {
+  margin: 0;
+  color: #7f8ea1;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .settings-scope-note {
   margin-top: 18px;
   padding: 18px 20px;
