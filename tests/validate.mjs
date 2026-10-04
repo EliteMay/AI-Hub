@@ -11,7 +11,7 @@ const requiredFiles = [
   "package.json",
   "config/modules.json",
   "src/main.mjs",
-  "src/preload.mjs",
+  "src/preload.cjs",
   "src/renderer/index.html",
   "src/renderer/app.js",
   "src/renderer/styles.css",
@@ -41,5 +41,12 @@ for (const module of registry.modules) {
   assert.equal(module.mode, "external-exe");
   assert.ok(module.executablePath.endsWith(".exe"));
 }
+
+const mainSource = readFileSync(path.join(root, "src", "main.mjs"), "utf8");
+assert.match(mainSource, /contextIsolation:\s*true/);
+assert.match(mainSource, /nodeIntegration:\s*false/);
+assert.match(mainSource, /sandbox:\s*true/);
+assert.match(mainSource, /preload\.cjs/);
+assert.match(mainSource, /app\.setPath\("userData"/);
 
 console.log("AI Hub validation passed.");
