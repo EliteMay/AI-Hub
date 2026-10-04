@@ -6,13 +6,16 @@
 
 ## Current Scope
 
-Phase 1基盤 + Phase 2 Local AI Lab Pilot:
+Phase 1基盤 + Phase 2 Local AI Lab Pilot + Phase 3 Shared Settings:
 
 - AI Hub自身を1つのElectron Applicationとして提供する。
 - 既存の個別Electron AppをHubから起動できる。
 - Module RegistryでRepository / Runtime mode / executable locationを管理する。
 - AI SSDが存在する場合は状態を表示する。
 - Local AI Labを最初の `hub-renderer` として、既存Renderer / Runtime / IPCをHub内で共有する。
+- AI Hubに「共通設定」を持ち、通知 / 起動時画面 / AI Repository基準保存先を一元管理する。
+- 共通設定をHub内ModuleへSnapshotとして渡し、変更時は対応Moduleへ即時反映できる。
+- Module固有Settingsは各Repositoryに残し、AI Hubへ複製しない。
 - Hubから任意Pathや任意Commandを実行できる汎用APIは公開しない。
 
 ## Module Migration
@@ -55,6 +58,10 @@ Hubは各Project固有Requirementsの第二Source of Truthにならない。
 - 他ModuleもdataRootKey単位で分離する。
 - SSDが利用できない場合のみAI Hub userData配下へFallbackする。
 - Project固有Data Roleは各RepositoryのRequirementsを優先する。
+- 共通設定Canonical: D:\\AI\\config\\ai-hub-shared-settings.json
+- 共通設定Backup: D:\\AI\\backups\\ai-hub-shared-settings.backup.json
+- SSD未検出時だけAI Hub userData配下へFallbackする。
+- 同じ共通設定を各Moduleのsettings.jsonへCanonical Copyしない。
 
 ## Completion Gate: Phase 1
 
@@ -76,3 +83,18 @@ Hubは各Project固有Requirementsの第二Source of Truthにならない。
 - Module dataRootがD:\AI\apps\local-ai-labへRoutingされる。
 - Local AI Lab側の全TestとAI Hub側Testが成功する。
 - Windows実機でHub内表示を確認する。
+
+
+## Completion Gate: Shared Settings
+
+- AI Hub Sidebarから「共通設定」へ到達できる。
+- 通知ON/OFF、起動時Module、Repository共通保存先を確認・変更できる。
+- Repository共通保存先はMain ProcessのFolder Pickerから選ぶ。
+- Shared SettingsはSchema Version付きJSONとしてCanonical保存する。
+- Current Settings破損時はBackupからRecoverできる。
+- Local AI LabへShared Settings Snapshotを渡せる。
+- Shared Settings変更後、起動済みLocal AI Lab Runtimeへ通知設定等を即時反映できる。
+- Hub内Local AI Labでは重複するApp Update設定を表示しない。
+- Standalone Local AI Labでは従来の固有Settings / Updaterを維持する。
+- AI Hub TestとLocal AI Lab Testが成功する。
+- Windows実機で共通設定画面とLocal AI Lab統合を確認する。
