@@ -22,6 +22,7 @@
       </div>
       <nav>
         <button id="home-nav" class="nav-item active" type="button">ホーム</button>
+        <button id="settings-nav" class="nav-item" type="button">共通設定</button>
         <button class="nav-item module-nav" data-module-id="local-ai-lab" type="button">Local AI Lab <small>統合中</small></button>
         <button class="nav-item" type="button" disabled>プロジェクト <small>後で追加</small></button>
         <button class="nav-item" type="button" disabled>モデル <small>後で追加</small></button>
@@ -30,35 +31,100 @@
     </aside>
 
     <main>
-      <header class="topbar">
-        <div>
-          <p class="eyebrow">DESKTOP CONTROL CENTER</p>
-          <h1>AI関連ツールを1か所から</h1>
-          <p>Local AI Labから順番に、個別exeをHub内Moduleへ移行しています。</p>
-        </div>
-        <div id="ssd-status" class="ssd-status">SSD確認中…</div>
-      </header>
-
-      <section>
-        <div class="section-heading">
+      <div id="home-view">
+        <header class="topbar">
           <div>
-            <p class="eyebrow">MODULES</p>
-            <h2>アプリ</h2>
+            <p class="eyebrow">DESKTOP CONTROL CENTER</p>
+            <h1>AI関連ツールを1か所から</h1>
+            <p>Local AI Labから順番に、個別exeをHub内Moduleへ移行しています。</p>
           </div>
-          <span id="module-count"></span>
-        </div>
-        <div id="module-grid" class="module-grid" aria-live="polite"></div>
-      </section>
+          <div id="ssd-status" class="ssd-status">SSD確認中…</div>
+        </header>
 
-      <section class="roadmap">
-        <p class="eyebrow">MIGRATION</p>
-        <h2>統合の進め方</h2>
-        <div class="steps">
-          <div><strong>1</strong><span>既存exeをHubから起動</span></div>
-          <div><strong>2</strong><span>Hub内Rendererへ段階移行</span></div>
-          <div><strong>3</strong><span>共通Storage / Settings / IPCをHubへ</span></div>
-          <div><strong>4</strong><span>個別exeを段階的に廃止</span></div>
-        </div>
+        <section>
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">MODULES</p>
+              <h2>アプリ</h2>
+            </div>
+            <span id="module-count"></span>
+          </div>
+          <div id="module-grid" class="module-grid" aria-live="polite"></div>
+        </section>
+
+        <section class="roadmap">
+          <p class="eyebrow">MIGRATION</p>
+          <h2>統合の進め方</h2>
+          <div class="steps">
+            <div><strong>1</strong><span>既存exeをHubから起動</span></div>
+            <div><strong>2</strong><span>Hub内Rendererへ段階移行</span></div>
+            <div><strong>3</strong><span>共通Storage / Settings / IPCをHubへ</span></div>
+            <div><strong>4</strong><span>個別exeを段階的に廃止</span></div>
+          </div>
+        </section>
+      </div>
+
+      <section id="settings-view" class="hidden" aria-labelledby="settings-title">
+        <header class="topbar settings-topbar">
+          <div>
+            <p class="eyebrow">SHARED SETTINGS</p>
+            <h1 id="settings-title">共通設定</h1>
+            <p>全Moduleで共通に扱う設定だけをAI Hubで管理します。</p>
+          </div>
+          <div id="settings-ssd-status" class="ssd-status">SSD確認中…</div>
+        </header>
+
+        <section class="settings-panel">
+          <div class="setting-row">
+            <div>
+              <strong>通知</strong>
+              <p>Hub内Moduleの長時間処理が完了・失敗した時のデスクトップ通知です。</p>
+            </div>
+            <label class="switch-line">
+              <input id="notifications-enabled" type="checkbox" checked>
+              <span>通知を使う</span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <strong>起動時に開く画面</strong>
+              <p>AI Hubを起動した直後に表示する画面を選びます。</p>
+            </div>
+            <select id="startup-module">
+              <option value="">ホーム</option>
+            </select>
+          </div>
+
+          <div class="setting-row setting-row-wide">
+            <div>
+              <strong>AI Repositoryの共通保存先</strong>
+              <p>今後HubからClone・作成するAI関連Repositoryの基準Folderです。</p>
+            </div>
+            <div class="path-control">
+              <input id="repository-root" type="text" readonly>
+              <button id="repository-root-button" class="secondary-button" type="button">変更</button>
+            </div>
+          </div>
+
+          <div class="setting-row setting-row-wide">
+            <div>
+              <strong>共通設定ファイル</strong>
+              <p>SSDが利用できる場合は <code>D:\AI\config</code> を正本にします。</p>
+            </div>
+            <code id="settings-config-path" class="path-value">確認中…</code>
+          </div>
+
+          <div class="settings-actions">
+            <button id="save-shared-settings" class="primary-button" type="button">共通設定を保存</button>
+            <p id="shared-settings-message" role="status"></p>
+          </div>
+        </section>
+
+        <section class="settings-scope-note">
+          <strong>各アプリ固有の設定は各Moduleに残します</strong>
+          <p>例: Local AI Labのモデル選択、監査対象、Bonsai設定、Coverage再利用など。共通設定と固有設定を二重保存しません。</p>
+        </section>
       </section>
     </main>
   </div>
