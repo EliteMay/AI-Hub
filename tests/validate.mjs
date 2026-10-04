@@ -12,6 +12,7 @@ const requiredFiles = [
   "config/modules.json",
   "src/main.mjs",
   "src/preload.cjs",
+  "src/module-preload.cjs",
   "src/renderer/index.html",
   "src/renderer/app.js",
   "src/renderer/styles.css",
@@ -27,7 +28,7 @@ assert.equal(pkg.main, "src/main.mjs");
 assert.equal(pkg.scripts.test, "node tests/validate.mjs");
 
 const registry = JSON.parse(readFileSync(path.join(root, "config", "modules.json"), "utf8"));
-assert.equal(registry.schemaVersion, "1.0");
+assert.equal(registry.schemaVersion, "1.1");
 assert.ok(Array.isArray(registry.modules));
 assert.equal(registry.modules.length, 4);
 
@@ -38,15 +39,26 @@ for (const module of registry.modules) {
   assert.match(module.id, /^[a-z0-9-]+$/);
   assert.ok(module.name);
   assert.ok(module.repository.startsWith("EliteMay/"));
-  assert.equal(module.mode, "external-exe");
+  assert.ok(["external-exe", "hub-renderer"].includes(module.mode));
   assert.ok(module.executablePath.endsWith(".exe"));
+
+  if (module.mode === "hub-renderer") {
+    assert.ok(module.repoPath);
+    assert.ok(module.manifestPath);
+  }
 }
 
+const localAi = registry.modules.find((module) => module.id === "local-ai-lab");
+assert.equal(localAi.mode, "hub-renderer");
+assert.equal(localAi.manifestPath, "hub\\module.json");
+
 const mainSource = readFileSync(path.join(root, "src", "main.mjs"), "utf8");
+assert.match(mainSource, /WebContentsView/);
 assert.match(mainSource, /contextIsolation:\s*true/);
 assert.match(mainSource, /nodeIntegration:\s*false/);
 assert.match(mainSource, /sandbox:\s*true/);
-assert.match(mainSource, /preload\.cjs/);
+assert.match(mainSource, /module-preload\.cjs/);
 assert.match(mainSource, /app\.setPath\("userData"/);
+assert.match(mainSource, /path\.relative/);
 
 console.log("AI Hub validation passed.");
