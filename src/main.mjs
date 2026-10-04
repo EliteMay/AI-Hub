@@ -62,6 +62,7 @@ function createSharedSettingsInfrastructure() {
 
 const sharedSettingsStore = createSharedSettingsInfrastructure();
 let sharedSettingsSnapshot = null;
+let pendingRepositoryRoot = null;
 
 async function getSharedSettings() {
   if (!sharedSettingsSnapshot) {
@@ -87,10 +88,23 @@ function normalizeStartupModuleId(value) {
 }
 
 async function saveSharedSettings(input) {
+  const current = await getSharedSettings();
+  const requestedRoot = String(input?.repositoryRoot || "").trim();
+  let repositoryRoot = current.repositoryRoot;
+
+  if (requestedRoot && path.resolve(requestedRoot) !== path.resolve(current.repositoryRoot)) {
+    if (!pendingRepositoryRoot || path.resolve(requestedRoot) !== path.resolve(pendingRepositoryRoot)) {
+      throw new Error("Repository保存先は「変更」ボタンから選択してください。");
+    }
+    repositoryRoot = pendingRepositoryRoot;
+  }
+
   const next = await sharedSettingsStore.save({
     ...input,
+    repositoryRoot,
     startupModuleId: normalizeStartupModuleId(input?.startupModuleId)
   });
+  pendingRepositoryRoot = null;
   sharedSettingsSnapshot = next;
 
   for (const controller of moduleRuntimeControllers.values()) {
@@ -107,7 +121,12 @@ async function selectSharedRepositoryRoot() {
     defaultPath: current.repositoryRoot,
     properties: ["openDirectory"]
   });
-  return result.canceled ? null : result.filePaths[0];
+  if (result.canceled) {
+    pendingRepositoryRoot = null;
+    return null;
+  }
+  pendingRepositoryRoot = result.filePaths[0];
+  return pendingRepositoryRoot;
 }
 
 function readRegistry() {
