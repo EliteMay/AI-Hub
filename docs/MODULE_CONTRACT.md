@@ -1,10 +1,10 @@
 # AI Hub Module Contract
 
-Version: 0.1
+Version: 0.2
 
 ## 目的
 
-各Repositoryを独立させたままAI Hubへ統合するための最小Contract。
+各Repositoryを独立させたまま、Project固有Runtime / Renderer / IPCをAI Hub内で安全に動かすためのContract。
 
 ## Runtime Modes
 
@@ -12,97 +12,141 @@ Version: 0.1
 
 既存Applicationをそのまま残し、Hubからallowlistされたexeだけを起動する互換Mode。
 
-Registry:
-
-- id
-- name
-- description
-- repository
-- mode
-- executablePath
-
-Rendererから任意Pathを指定して起動しない。
-
 ### hub-renderer
 
-各Repository自身がHub向けRendererを所有し、AI Hubが `WebContentsView` で表示する。
+各Repositoryが次を所有する。
 
-AI Hub Registry:
+- Module Manifest
+- Renderer
+- Preload
+- Runtime Adapter
+- Product固有IPC / Runtime
 
-- id
-- repository
-- mode = hub-renderer
-- repoPath
-- manifestPath
-- executablePath（移行中のFallback）
+AI Hubはそれらを登録済みRepository Pathから解決し、`WebContentsView` へ読み込む。
 
-各Repository側のManifest:
+## Manifest 1.0
+
+例:
 
 ```json
 {
-  "schemaVersion": "0.1",
+  "schemaVersion": "1.0",
   "hubApiVersion": "0.1",
   "id": "local-ai-lab",
   "name": "Local AI Lab",
-  "entry": "index.html",
+  "mode": "hub-renderer",
+  "renderer": "desktop/renderer/index.html",
+  "preload": "hub/preload.cjs",
+  "adapter": "hub/adapter.mjs",
+  "dataRootKey": "local-ai-lab",
   "capabilities": [
-    "module-context",
-    "open-full-app",
-    "show-hub-home"
+    "local-models",
+    "repository-read",
+    "long-running-process",
+    "history",
+    "diagnostics"
   ]
 }
 ```
 
+## Adapter Contract
+
+Module Adapterは最低限:
+
+```js
+export async function activate({
+  hostWindow,
+  webContents,
+  dataRoot
+}) {
+  return {
+    commandStatus,
+    cancelActiveCommand,
+    dispose
+  };
+}
+```
+
+を提供できる。
+
+返却Controllerの機能はModuleが実際に必要なものだけ持つ。AI HubはProduct固有処理を再実装しない。
+
 ## Security Boundary
 
-- Module Rendererは `nodeIntegration: false` / `contextIsolation: true` / `sandbox: true` で動かす。
-- ModuleへNode / Electron APIを直接公開しない。
-- `module-preload.cjs` の限定Bridgeだけを公開する。
-- Module IDはRenderer入力をAuthorizationにせず、Main Processが `webContents.id` から対応Moduleを解決する。
-- ManifestとEntryは登録済みRepository Root内に収まることをMain Processで検証する。
-- Moduleから任意Command / 任意Path実行を許可しない。
+- Module Registryに登録済みRepositoryだけ読み込む。
+- Manifest / Renderer / Preload / AdapterはすべてRepository Root内に収まることを検証する。
+- Module Rendererは `contextIsolation: true` / `nodeIntegration: false` / `sandbox: true`。
+- Module Preloadは各Repositoryが所有し、必要なIPCだけExposeする。
+- 任意URLへのNavigation / Window Openを許可しない。
+- Module Runtimeが許可するCommand / File操作は各ProjectのSecurity Contractに従う。
+- AI HubはModule側のSecurity Contractを広げない。
 
-## Current Module API 0.1
+## Storage
 
-- `getContext()`
-  - Module ID / name / repository / package version / full app availability
-- `openFullApp()`
-  - Registryに固定されたFallback exeのみ起動
-- `showHome()`
-  - Hub Homeへ戻る
+AI SSDが利用可能な場合:
 
-Product固有の強い権限はまだ提供しない。
+```text
+D:\AI\apps\<dataRootKey>
+```
+
+をModule dataRootとして渡す。
+
+ModuleはこのPathを受け取っても、Canonical / History / Cache等のProject固有Data Roleを自身のRequirementsに従って扱う。
+
+SSDが利用できない場合はAI Hub userData配下のModule領域へFallbackする。
+
+## Lifecycle
+
+```text
+AI Hub
+↓
+Registry
+↓
+Module Manifest
+↓
+WebContentsView作成
+↓
+Repository-owned Preload
+↓
+Adapter.activate()
+↓
+Repository-owned Runtime
+↓
+Repository-owned Renderer
+```
+
+Moduleの長時間処理が実行中の場合、AI Hub終了時も無警告でProcessを破棄しない。
 
 ## Ownership
 
-AI Hubが所有するもの:
+AI Hub:
 
-- Hub Shell
-- Navigation
-- Common Settings
-- Common Storage routing
-- Module discovery / lifecycle
-- Shared diagnostics
-- Module Contract / Bridge
+- Window / Sidebar / Navigation
+- Module Registry
+- Module lifecycle
+- SSD routing
+- 共通Close Guard
+- Module Contract
 
-各Repositoryが所有するもの:
+各Project Repository:
 
-- Module Renderer
-- Product-specific requirements
-- Product-specific UI / logic
-- Product-specific tests
-- Product-specific release compatibility
+- Renderer
+- Preload
+- Product Runtime
+- IPC
+- Product Requirements / Tests
+- Product固有Storage / Recovery
 
-Hubへの統合を理由にProject固有仕様をAI Hubへコピーしない。
+Hubへの統合を理由にProject固有CodeをAI Hubへコピーしない。
 
 ## Migration
 
 ```text
 external-exe
-→ hub-renderer
-→ capability単位でHub Bridgeへ移行
-→ native-module相当の統合
-→ 検証後に個別exeを廃止
+→ hub-renderer（既存Runtimeを共有）
+→ 共通化価値が実証された責務だけHubへ移行
+→ 個別exe不要を検証
+→ 廃止
 ```
 
 一括Rewriteしない。
