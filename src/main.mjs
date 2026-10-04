@@ -1,9 +1,10 @@
 import { app, BrowserWindow, WebContentsView, dialog, ipcMain, shell } from "electron";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
-const appRoot = path.resolve(".");
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const appRoot = path.resolve(__dirname, "..");
 const registryPath = path.join(appRoot, "config", "modules.json");
 const ssdManifestPath = "D:\\AI_SSD_MANIFEST.json";
 const sidebarWidth = 230;
