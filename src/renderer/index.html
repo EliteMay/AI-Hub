@@ -21,7 +21,8 @@
         </div>
       </div>
       <nav>
-        <button class="nav-item active" type="button">ホーム</button>
+        <button id="home-nav" class="nav-item active" type="button">ホーム</button>
+        <button class="nav-item module-nav" data-module-id="local-ai-lab" type="button">Local AI Lab <small>統合中</small></button>
         <button class="nav-item" type="button" disabled>プロジェクト <small>後で追加</small></button>
         <button class="nav-item" type="button" disabled>モデル <small>後で追加</small></button>
         <button class="nav-item" type="button" disabled>ストレージ <small>後で追加</small></button>
@@ -33,7 +34,7 @@
         <div>
           <p class="eyebrow">DESKTOP CONTROL CENTER</p>
           <h1>AI関連ツールを1か所から</h1>
-          <p>現在は既存アプリを安全にまとめて起動するPhase 1です。</p>
+          <p>Local AI Labから順番に、個別exeをHub内Moduleへ移行しています。</p>
         </div>
         <div id="ssd-status" class="ssd-status">SSD確認中…</div>
       </header>
@@ -54,8 +55,8 @@
         <h2>統合の進め方</h2>
         <div class="steps">
           <div><strong>1</strong><span>既存exeをHubから起動</span></div>
-          <div><strong>2</strong><span>共通Storage / SettingsをHubへ</span></div>
-          <div><strong>3</strong><span>各RepositoryをModule化</span></div>
+          <div><strong>2</strong><span>Hub内Rendererへ段階移行</span></div>
+          <div><strong>3</strong><span>共通Storage / Settings / IPCをHubへ</span></div>
           <div><strong>4</strong><span>個別exeを段階的に廃止</span></div>
         </div>
       </section>
