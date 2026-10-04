@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -18,6 +18,8 @@ test("shared settings persist one canonical config with backup recovery", async 
   assert.equal(initial.notificationsEnabled, true);
   assert.equal(initial.startupModuleId, "");
   assert.equal(initial.repositoryRoot, path.resolve(repoRoot));
+  const initialFile = JSON.parse(await readFile(configPath, "utf8"));
+  assert.equal(initialFile.schemaVersion, 1);
 
   await store.save({
     notificationsEnabled: false,
