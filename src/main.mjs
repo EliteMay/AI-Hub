@@ -325,6 +325,13 @@ if (!gotLock) {
 
     mainWindow = createWindow();
 
+    const startupModule = String(process.env.AI_HUB_START_MODULE || "").trim();
+    if (startupModule) {
+      void openModuleView(startupModule).then((result) => {
+        console.log("[AI Hub] startup module:", startupModule, result.ok ? "OK" : result.error);
+      });
+    }
+
     app.on("activate", () => {
       if (BrowserWindow.getAllWindows().length === 0) mainWindow = createWindow();
     });
