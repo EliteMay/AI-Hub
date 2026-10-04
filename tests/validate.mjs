@@ -12,7 +12,6 @@ const requiredFiles = [
   "config/modules.json",
   "src/main.mjs",
   "src/preload.cjs",
-  "src/module-preload.cjs",
   "src/renderer/index.html",
   "src/renderer/app.js",
   "src/renderer/styles.css",
@@ -57,8 +56,12 @@ assert.match(mainSource, /WebContentsView/);
 assert.match(mainSource, /contextIsolation:\s*true/);
 assert.match(mainSource, /nodeIntegration:\s*false/);
 assert.match(mainSource, /sandbox:\s*true/);
-assert.match(mainSource, /module-preload\.cjs/);
+assert.match(mainSource, /pathToFileURL/);
+assert.match(mainSource, /adapter\.activate/);
+assert.match(mainSource, /resolveInside/);
+assert.match(mainSource, /dataRootKey/);
 assert.match(mainSource, /app\.setPath\("userData"/);
-assert.match(mainSource, /path\.relative/);
+assert.match(mainSource, /commandStatus/);
+assert.match(mainSource, /cancelActiveCommand/);
 
 console.log("AI Hub validation passed.");
