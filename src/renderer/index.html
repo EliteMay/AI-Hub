@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:;"
+  >
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Hub</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark">AI</span>
+        <div>
+          <strong>AI Hub</strong>
+          <span>Local workspace</span>
+        </div>
+      </div>
+      <nav>
+        <button class="nav-item active" type="button">ホーム</button>
+        <button class="nav-item" type="button" disabled>プロジェクト <small>後で追加</small></button>
+        <button class="nav-item" type="button" disabled>モデル <small>後で追加</small></button>
+        <button class="nav-item" type="button" disabled>ストレージ <small>後で追加</small></button>
+      </nav>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">DESKTOP CONTROL CENTER</p>
+          <h1>AI関連ツールを1か所から</h1>
+          <p>現在は既存アプリを安全にまとめて起動するPhase 1です。</p>
+        </div>
+        <div id="ssd-status" class="ssd-status">SSD確認中…</div>
+      </header>
+
+      <section>
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">MODULES</p>
+            <h2>アプリ</h2>
+          </div>
+          <span id="module-count"></span>
+        </div>
+        <div id="module-grid" class="module-grid" aria-live="polite"></div>
+      </section>
+
+      <section class="roadmap">
+        <p class="eyebrow">MIGRATION</p>
+        <h2>統合の進め方</h2>
+        <div class="steps">
+          <div><strong>1</strong><span>既存exeをHubから起動</span></div>
+          <div><strong>2</strong><span>共通Storage / SettingsをHubへ</span></div>
+          <div><strong>3</strong><span>各RepositoryをModule化</span></div>
+          <div><strong>4</strong><span>個別exeを段階的に廃止</span></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <template id="module-card-template">
+    <article class="module-card">
+      <div class="module-card-header">
+        <div class="module-icon"></div>
+        <span class="status-pill"></span>
+      </div>
+      <h3></h3>
+      <p class="module-description"></p>
+      <p class="repository"></p>
+      <button class="launch-button" type="button">開く</button>
+      <p class="module-message" role="status"></p>
+    </article>
+  </template>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>
