@@ -425,7 +425,12 @@ h2 {
 
 @media (max-width: 980px) {
   .module-grid,
-  .steps {
+  .steps,
+  .setting-row {
     grid-template-columns: 1fr;
+  }
+
+  .setting-row {
+    gap: 12px;
   }
 }
