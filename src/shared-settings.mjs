@@ -38,16 +38,10 @@ async function directoryExists(pathname) {
   }
 }
 
-async function atomicWriteJson(targetPath, backupPath, value) {
+async function replacePrimaryJson(targetPath, value) {
   await mkdir(path.dirname(targetPath), { recursive: true });
-  await mkdir(path.dirname(backupPath), { recursive: true });
-
   const temporaryPath = targetPath + ".tmp";
   await writeFile(temporaryPath, JSON.stringify(value, null, 2) + "\n", "utf8");
-
-  try {
-    await copyFile(targetPath, backupPath);
-  } catch {}
 
   try {
     await rename(temporaryPath, targetPath);
@@ -55,6 +49,17 @@ async function atomicWriteJson(targetPath, backupPath, value) {
     await rm(targetPath, { force: true });
     await rename(temporaryPath, targetPath);
   }
+}
+
+async function atomicWriteJson(targetPath, backupPath, value) {
+  await mkdir(path.dirname(backupPath), { recursive: true });
+
+  try {
+    await readJson(targetPath);
+    await copyFile(targetPath, backupPath);
+  } catch {}
+
+  await replacePrimaryJson(targetPath, value);
 }
 
 export function createSharedSettingsStore({
@@ -68,13 +73,16 @@ export function createSharedSettingsStore({
     if (cached) return { ...cached };
 
     let source = null;
+    let sourceKind = "primary";
     try {
       source = await readJson(configPath);
     } catch {
       try {
         source = await readJson(backupPath);
+        sourceKind = "backup";
       } catch {
         source = {};
+        sourceKind = "default";
       }
     }
 
@@ -82,6 +90,10 @@ export function createSharedSettingsStore({
     if (!(await directoryExists(next.repositoryRoot))) {
       await mkdir(defaultRepositoryRoot, { recursive: true });
       next.repositoryRoot = path.resolve(defaultRepositoryRoot);
+    }
+
+    if (sourceKind !== "primary") {
+      await replacePrimaryJson(configPath, next);
     }
 
     cached = next;
