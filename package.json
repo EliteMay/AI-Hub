@@ -1,0 +1,15 @@
+{
+  "name": "elite-ai-hub",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Unified desktop hub for EliteMay AI and development tools",
+  "type": "module",
+  "main": "src/main.mjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "node tests/validate.mjs"
+  },
+  "devDependencies": {
+    "electron": "44.5.1"
+  }
+}
