@@ -4,7 +4,7 @@
 
 ## 現在の段階
 
-Local AI Labを最初の本統合Pilotとして、**既存のLocal AI Lab Renderer / Runtime / IPCをAI Hub内でそのまま動かす方式**へ移行しています。
+Local AI Labを最初の本統合Pilotとして、**既存のLocal AI Lab Renderer / Runtime / IPCをAI Hub内でそのまま動かし、共通設定だけAI Hubへ集約する方式**へ移行しています。
 
 - Local AI Lab — `hub-renderer`（Repository-owned Runtime Adapter）
 - Game Dev Hub — `external-exe`
@@ -63,3 +63,28 @@ Standalone版Local AI Labも `desktop/runtime-host.mjs` を共有するので、
 - 共通化するのは実際に複数Moduleで安定して共通化できる責務だけ。
 - 個別exeはModule移行が完了するまでFallbackとして残す。
 - AI SSDを利用できる場合は `D:\AI_SSD_CONSTITUTION.md` と必要なScoped RuleへRoutingする。
+
+
+## 共通設定
+
+AI Hubの「共通設定」は、複数Moduleで同じ意味を持つ項目だけを管理します。
+
+現在:
+
+- デスクトップ通知
+- 起動時に開くModule
+- AI Repositoryの共通保存先
+
+AI SSD利用時の正本:
+
+```text
+D:\AI\config\ai-hub-shared-settings.json
+```
+
+Backup:
+
+```text
+D:\AI\backups\ai-hub-shared-settings.backup.json
+```
+
+モデル選択、監査条件、Bonsai等のProduct固有設定は各Module側に残します。
