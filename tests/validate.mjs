@@ -12,6 +12,7 @@ const requiredFiles = [
   "config/modules.json",
   "src/main.mjs",
   "src/preload.cjs",
+  "src/shared-settings.mjs",
   "src/renderer/index.html",
   "src/renderer/app.js",
   "src/renderer/styles.css",
@@ -24,7 +25,7 @@ for (const relativePath of requiredFiles) {
 
 const pkg = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8"));
 assert.equal(pkg.main, "src/main.mjs");
-assert.equal(pkg.scripts.test, "node tests/validate.mjs");
+assert.equal(pkg.scripts.test, "node --test tests/shared-settings.test.mjs && node tests/validate.mjs");
 
 const registry = JSON.parse(readFileSync(path.join(root, "config", "modules.json"), "utf8"));
 assert.equal(registry.schemaVersion, "1.1");
@@ -63,5 +64,9 @@ assert.match(mainSource, /dataRootKey/);
 assert.match(mainSource, /app\.setPath\("userData"/);
 assert.match(mainSource, /commandStatus/);
 assert.match(mainSource, /cancelActiveCommand/);
+assert.match(mainSource, /hub:settings:get/);
+assert.match(mainSource, /hub:settings:save/);
+assert.match(mainSource, /ai-hub-shared-settings\.json/);
+assert.match(mainSource, /applySharedSettings/);
 
 console.log("AI Hub validation passed.");
