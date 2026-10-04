@@ -2,6 +2,8 @@ const grid = document.querySelector("#module-grid");
 const count = document.querySelector("#module-count");
 const ssdStatus = document.querySelector("#ssd-status");
 const template = document.querySelector("#module-card-template");
+const homeNav = document.querySelector("#home-nav");
+const moduleNavItems = [...document.querySelectorAll(".module-nav")];
 
 function moduleInitials(name) {
   return name
@@ -10,6 +12,21 @@ function moduleInitials(name) {
     .join("")
     .slice(0, 2)
     .toUpperCase();
+}
+
+function setActiveNav(moduleId = null) {
+  homeNav.classList.toggle("active", moduleId === null);
+  for (const item of moduleNavItems) {
+    item.classList.toggle("active", item.dataset.moduleId === moduleId);
+  }
+}
+
+async function openEmbeddedModule(moduleId) {
+  const result = await window.aiHub.openModuleView(moduleId);
+  if (result.ok) {
+    setActiveNav(moduleId);
+  }
+  return result;
 }
 
 function renderModule(module) {
@@ -28,7 +45,11 @@ function renderModule(module) {
   description.textContent = module.description;
   repository.textContent = module.repository;
 
-  if (module.installed) {
+  if (module.mode === "hub-renderer" && module.embeddedAvailable) {
+    pill.textContent = "Hub統合";
+    pill.dataset.state = "ok";
+    button.textContent = "Hub内で開く";
+  } else if (module.installed) {
     pill.textContent = "利用可能";
     pill.dataset.state = "ok";
   } else {
@@ -39,20 +60,36 @@ function renderModule(module) {
   }
 
   button.addEventListener("click", async () => {
-    message.textContent = "起動中…";
     button.disabled = true;
 
-    const result = await window.aiHub.launchModule(module.id);
-    if (result.ok) {
-      message.textContent = "起動しました。";
+    if (module.mode === "hub-renderer" && module.embeddedAvailable) {
+      message.textContent = "Hub内で開いています…";
+      const result = await openEmbeddedModule(module.id);
+      message.textContent = result.ok ? "" : (result.error ?? "開けませんでした。");
     } else {
-      message.textContent = result.error ?? "起動できませんでした。";
+      message.textContent = "起動中…";
+      const result = await window.aiHub.launchModule(module.id);
+      message.textContent = result.ok ? "起動しました。" : (result.error ?? "起動できませんでした。");
     }
 
-    button.disabled = !module.installed;
+    button.disabled = false;
   });
 
   grid.append(card);
+}
+
+homeNav.addEventListener("click", async () => {
+  await window.aiHub.showHome();
+  setActiveNav();
+});
+
+for (const item of moduleNavItems) {
+  item.addEventListener("click", async () => {
+    const result = await openEmbeddedModule(item.dataset.moduleId);
+    if (!result.ok) {
+      item.title = result.error ?? "Moduleを開けませんでした。";
+    }
+  });
 }
 
 async function init() {
@@ -61,8 +98,15 @@ async function init() {
     window.aiHub.getSsdStatus()
   ]);
 
-  count.textContent = `${modules.filter((item) => item.installed).length} / ${modules.length} 利用可能`;
+  count.textContent = `${modules.filter((item) => item.installed || item.embeddedAvailable).length} / ${modules.length} 利用可能`;
   modules.forEach(renderModule);
+
+  const localAi = modules.find((item) => item.id === "local-ai-lab");
+  const localAiNav = moduleNavItems.find((item) => item.dataset.moduleId === "local-ai-lab");
+  if (localAiNav && !localAi?.embeddedAvailable) {
+    localAiNav.disabled = true;
+    localAiNav.querySelector("small").textContent = "未検出";
+  }
 
   if (ssd.available) {
     ssdStatus.textContent = `SSD 接続済み · ${ssd.managedRoot ?? "D:\\AI"}`;
